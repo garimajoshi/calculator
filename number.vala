@@ -1609,7 +1609,14 @@ public class Number
         var factors = new List<Number?> ();
 
         var value = abs ();
-
+    	
+		if(!is_integer())
+        {
+            mperr (_("Cannot factorize a non-integer"));
+            factors.append (value);
+            return factors;
+        }
+		
         if (value.is_zero ())
         {
             factors.append (value);
@@ -1622,6 +1629,24 @@ public class Number
             return factors;
         }
 
+		/*
+            if value < 2^64-1, call for factorize_uint64 function which deals in integers
+            2^64-1 = 18446744073709551615
+                     9223372036854775783
+        */
+        uint64 num = 1;
+        num = num<<63;
+        num += (num-1);
+        var int_max = new Number.unsigned_integer(num);
+
+        if(value.compare(int_max) <= 0)
+        {
+            var factors_int64 = factorize_uint64(value.to_unsigned_integer());
+            if (is_negative ())
+                factors_int64.data = factors_int64.data.invert_sign ();
+            return factors_int64;
+        }
+		
         var divisor = new Number.integer (2);
         while (true)
         {
@@ -1662,6 +1687,29 @@ public class Number
         return factors;
     }
 
+	public List<Number?> factorize_uint64 (uint64 n)
+	{
+    var factors = new List<Number?> ();
+    while (n % 2==0)
+    {
+        n /= 2;
+        factors.append (new Number.unsigned_integer (2));
+    }
+    for (uint64 divisor = 3; divisor <= n / divisor; divisor += 2)
+    {
+        while (n % divisor == 0)
+        {
+            n /= divisor;
+            factors.append (new Number.unsigned_integer (divisor));
+        }
+    }
+    if (n > 1)
+    {
+        factors.append (new Number.unsigned_integer (n));
+    }
+    return factors;
+	}
+	
     private Number copy ()
     {
         var z = new Number ();
