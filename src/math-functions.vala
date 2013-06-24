@@ -33,6 +33,7 @@ public MathFunction : Object
     
     public MathFunction (string function_name, string[] arguments, string? expression, string? description)
     {
+
         _name = function_name;
         _arguments = arguments;
         
@@ -47,18 +48,56 @@ public MathFunction : Object
             _description = "";
     }
     
-    Number? virtual evaluate (Number[] args)
+    Number? virtual evaluate (Number[] args, Equation equation, out representation_base, out error_code, out error_token, out error_start, out error_end)
     {
-        //TODO: implement this
-        /*
-            1. add temporarily these variables to set of defined variables like
-                _arguments[0] = args[0]
-                .
-                .
-                _arguments[n-1] = args[n-1]
-            2. create equation object, parse the expression using it
-            3. remove temporarily added variables in step 1
-        */
+        FunctionParser parser = new FunctionParser (this, equation, args);
+        var ans = parser.parse (text, out representation_base, out error_code, out error_token, out error_start, out error_end);
+        if (error_code == ErrorCode.NONE)
+            return ans;
+        return null;
+    }
+
+    bool virtual is_custom_function ()
+    {
+        return true;
+    }
+}
+
+private FunctionParser : EquationParser
+{
+    private Number[] _parameters;
+    private MathFunction _function;
+    public FunctionParser (MathFunction function, Equation equation, Number[] parameters)
+    {
+        base (equation, function.expression);
+        _function = function;
+        _parameters = parameters;
+    }
+
+    protected override bool variable_is_defined (string name)
+    {
+        string[] argument_names = _function.arguments;
+        for (int i = 0; i < argument_names.length; i++)
+        {
+            if (argument_names[i] == name)
+                return true;
+        }
+        return base.variable_is_defined (name);
+    }
+
+    protected override Number? get_variable (string name)
+    {
+        string[] argument_names = _function.arguments ();
+        for (int i = 0; i < argument_names.length; i++)
+        {
+            if (argument_names[i] == name)
+            {
+                if (_parameters.length > i)
+                    return _parameters[i];
+                return null;
+            }
+        }
+        return base.get_variable (name);
     }
 }
 
@@ -71,84 +110,89 @@ public BuiltInMathFunction : MathFunction
         base (function_name, arguments, expression, description);
     }
     
-    Number? override evaluate (Number[] args)
+    Number? override evaluate (Number[] args, Equation equation, out representation_base, out error_code, out error_token, out error_start, out error_end)
     {
         return evaluate_built_in_function (name, args);
     }
-    
-    private Number? evaluate_built_in_function (string name, Number[] args)
-    {
-        var lower_name = name.down ();
-        var x = args[0];
-        // FIXME: Re Im ?
 
-        if (lower_name == "log")
+    bool override is_custom_function ()
+    {
+        return false;
+    }
+}
+
+private Number? evaluate_built_in_function (string name, Number[] args)
+{
+    var lower_name = name.down ();
+    var x = args[0];
+    // FIXME: Re Im ?
+
+    if (lower_name == "log")
+    {
+        if (args.length <= 1)
+            return x.logarithm (10); // FIXME: Default to ln
+        else
         {
-            if (args.length <= 1)
-                return x.logarithm (10); // FIXME: Default to ln
+            var number_base = args[1].to_integer ();
+            if (number_base < 0)
+                return null;
             else
-            {
-                var number_base = args[1].to_integer ();
-                if (number_base < 0)
-                    return null;
-                else
-                    return x.logarithm (number_base);
-            }
+                return x.logarithm (number_base);
         }
-        else if (lower_name == "ln")
-            return x.ln ();
-        else if (lower_name == "sqrt") // √x
-            return x.sqrt ();
-        else if (lower_name == "abs") // |x|
-            return x.abs ();
-        else if (lower_name == "sgn") //signum function
-            return x.sgn ();
-        else if (lower_name == "arg")
-            return x.arg (equation.angle_units);
-        else if (lower_name == "conj")
-            return x.conjugate ();
-        else if (lower_name == "int")
-            return x.integer_component ();
-        else if (lower_name == "frac")
-            return x.fractional_component ();
-        else if (lower_name == "floor")
-            return x.floor ();
-        else if (lower_name == "ceil")
-            return x.ceiling ();
-        else if (lower_name == "round")
-            return x.round ();
-        else if (lower_name == "re")
-            return x.real_component ();
-        else if (lower_name == "im")
-            return x.imaginary_component ();
-        else if (lower_name == "sin")
-            return x.sin (equation.angle_units);
-        else if (lower_name == "cos")
-            return x.cos (equation.angle_units);
-        else if (lower_name == "tan")
-            return x.tan (equation.angle_units);
-        else if (lower_name == "sin⁻¹" || lower_name == "asin")
-            return x.asin (equation.angle_units);
-        else if (lower_name == "cos⁻¹" || lower_name == "acos")
-            return x.acos (equation.angle_units);
-        else if (lower_name == "tan⁻¹" || lower_name == "atan")
-            return x.atan (equation.angle_units);
-        else if (lower_name == "sinh")
-            return x.sinh ();
-        else if (lower_name == "cosh")
-            return x.cosh ();
-        else if (lower_name == "tanh")
-            return x.tanh ();
-        else if (lower_name == "sinh⁻¹" || lower_name == "asinh")
-            return x.asinh ();
-        else if (lower_name == "cosh⁻¹" || lower_name == "acosh")
-            return x.acosh ();
-        else if (lower_name == "tanh⁻¹" || lower_name == "atanh")
-            return x.atanh ();
-        else if (lower_name == "ones")
-            return x.ones_complement (equation.wordlen);
-        else if (lower_name == "twos")
-            return x.twos_complement (equation.wordlen);
-        return null;
-    }   
+    }
+    else if (lower_name == "ln")
+        return x.ln ();
+    else if (lower_name == "sqrt") // √x
+        return x.sqrt ();
+    else if (lower_name == "abs") // |x|
+        return x.abs ();
+    else if (lower_name == "sgn") //signum function
+        return x.sgn ();
+    else if (lower_name == "arg")
+        return x.arg (equation.angle_units);
+    else if (lower_name == "conj")
+        return x.conjugate ();
+    else if (lower_name == "int")
+        return x.integer_component ();
+    else if (lower_name == "frac")
+        return x.fractional_component ();
+    else if (lower_name == "floor")
+        return x.floor ();
+    else if (lower_name == "ceil")
+        return x.ceiling ();
+    else if (lower_name == "round")
+        return x.round ();
+    else if (lower_name == "re")
+        return x.real_component ();
+    else if (lower_name == "im")
+        return x.imaginary_component ();
+    else if (lower_name == "sin")
+        return x.sin (equation.angle_units);
+    else if (lower_name == "cos")
+        return x.cos (equation.angle_units);
+    else if (lower_name == "tan")
+        return x.tan (equation.angle_units);
+    else if (lower_name == "sin⁻¹" || lower_name == "asin")
+        return x.asin (equation.angle_units);
+    else if (lower_name == "cos⁻¹" || lower_name == "acos")
+        return x.acos (equation.angle_units);
+    else if (lower_name == "tan⁻¹" || lower_name == "atan")
+        return x.atan (equation.angle_units);
+    else if (lower_name == "sinh")
+        return x.sinh ();
+    else if (lower_name == "cosh")
+        return x.cosh ();
+    else if (lower_name == "tanh")
+        return x.tanh ();
+    else if (lower_name == "sinh⁻¹" || lower_name == "asinh")
+        return x.asinh ();
+    else if (lower_name == "cosh⁻¹" || lower_name == "acosh")
+        return x.acosh ();
+    else if (lower_name == "tanh⁻¹" || lower_name == "atanh")
+        return x.atanh ();
+    else if (lower_name == "ones")
+        return x.ones_complement (equation.wordlen);
+    else if (lower_name == "twos")
+        return x.twos_complement (equation.wordlen);
+    return null;
 }

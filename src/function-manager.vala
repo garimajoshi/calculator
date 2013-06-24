@@ -1,3 +1,13 @@
+/*
+ * Copyright (C) 2013 Garima Joshi
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 2 of the License, or (at your option) any later
+ * version. See http://www.gnu.org/copyleft/gpl.html the full text of the
+ * license.
+ */
+
 public class FunctionManager : Object
 {
 	private string file_name;
@@ -22,9 +32,6 @@ public class FunctionManager : Object
 
     private reload_builtin_functions ()
     {
-        MathFunction? function;
-        string[] args = {};
-
         add (new BuiltInMathFunction ("log", "Logarithm"));
         
         add (new BuiltInMathFunction ("ln", "Natural logarithm"));
@@ -111,7 +118,7 @@ public class FunctionManager : Object
         {
             MathFunction? function = parse_function_from_string (line);
             if (function != null)
-        	    functions.insert (function.get_name(), function);
+        	    functions.insert (function.name, function);
         }
     }
 
@@ -155,16 +162,16 @@ public class FunctionManager : Object
         var data = "";
         var iter = HashTableIter<string, MathFunction> (functions);
         string name;
-        MathFunction? definition;
+        MathFunction math_function;
         while (iter.next (out name, out math_function))
         {
-            if (!mathFunction.is_custom_function ())
+            if (!math_function.is_custom_function ())
                 continue;      //skip builtin functions
 
-            data += "%s(%s)=%s@%s\n".printf (math_function.get_name (),
-                                             string.joinv (";", math_function.get_arguments ()),
-                                             math_function.get_expression (),
-                                             math_function.get_description ());
+            data += "%s(%s)=%s@%s\n".printf (math_function.name,
+                                             string.joinv (";", math_function.arguments),
+                                             math_function.expression,
+                                             math_function.description);
         }
 
         var dir = Path.get_dirname (file_name);
@@ -198,12 +205,15 @@ public class FunctionManager : Object
 
     public void add (MathFunction new_function)
     {
-        MathFunction existing_function = get (new_funcion.get_name ());
+        MathFunction existing_function = get (new_function.name);
+
         if (existing_function != null)
-            functions.replace (new_funcion.get_name (), new_funcion);
+            functions.replace (new_function.name, new_function);
         else
-            functions.insert (new_funcion.get_name (), new_funcion);
-        save ();
+            functions.insert (new_function.name, new_function);
+
+        if (new_function.is_custom_function ())
+            save ();
     }
 
     public new MathFunction? get (string name)
@@ -233,6 +243,8 @@ public class FunctionManager : Object
             return eligible_functions;
 
         var iter = HashTableIter<string, MathFunction> (functions);
+        string function_name;
+        MathFunction function;
         while (iter.next (out function_name, out function))
         {
             //check if any prefix with length > 2 of function_name is a suffix of display_text
@@ -240,7 +252,7 @@ public class FunctionManager : Object
             {
                 if (display_text.has_suffix (function_name.substring (0, len)))
                 {
-                    eligible_function += function;
+                    eligible_functions += function;
                     break;
                 }
             }
