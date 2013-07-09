@@ -170,7 +170,7 @@ private class EquationParser : Parser
 
     public EquationParser (Equation equation, string expression)
     {
-        base (expression, equation.base, equation.wordlen);
+        base (expression, equation.base, equation.wordlen, equation.angle_units);
         this.equation = equation;
     }
 
@@ -211,34 +211,11 @@ private class EquationParser : Parser
 
     protected override bool function_is_defined (string name)
     {
-        var lower_name = name.down ();
-
-        /* FIXME: Make more generic */
-        if (lower_name == "log" ||
-            (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) >= 0) ||
-            lower_name == "ln" ||
-            lower_name == "sqrt" ||
-            lower_name == "abs" ||
-            lower_name == "sgn" ||
-            lower_name == "arg" ||
-            lower_name == "conj" ||
-            lower_name == "int" ||
-            lower_name == "frac" ||
-            lower_name == "floor" ||
-            lower_name == "ceil" ||
-            lower_name == "round" ||
-            lower_name == "re" ||
-            lower_name == "im" ||
-            lower_name == "sin" || lower_name == "cos" || lower_name == "tan" ||
-            lower_name == "asin" || lower_name == "acos" || lower_name == "atan" ||
-            lower_name == "sin⁻¹" || lower_name == "cos⁻¹" || lower_name == "tan⁻¹" ||
-            lower_name == "sinh" || lower_name == "cosh" || lower_name == "tanh" ||
-            lower_name == "sinh⁻¹" || lower_name == "cosh⁻¹" || lower_name == "tanh⁻¹" ||
-            lower_name == "asinh" || lower_name == "acosh" || lower_name == "atanh" ||
-            lower_name == "ones" ||
-            lower_name == "twos")
-            return true;
-
+	    var function_manager = FunctionManager.get_default_function_manager();
+		
+	    if (function_manager.is_function_defined (name))
+		    return true;
+			
         return equation.function_is_defined (name);
     }
 

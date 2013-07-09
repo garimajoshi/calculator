@@ -8,29 +8,38 @@
  * license.
  */
 
+private FunctionManager? default_function_manager = null;
+
 public class FunctionManager : Object
 {
-	private string file_name;
-	private HashTable<string, MathFunction> functions;
-	private Serializer serializer;
+    private string file_name;
+    private HashTable<string, MathFunction> functions;
+    private Serializer serializer;
 
-	public FunctionManager ()
+    public FunctionManager ()
     {
         functions = new HashTable <string, MathFunction> (str_hash, str_equal);
-        file_name = Path.build_filename (Environment.get_user_data_dir (), "gnome-calculator", "custom_functions");
+        file_name = Path.build_filename (Environment.get_user_data_dir (), "gnome-calculator", "custom-functions");
         serializer = new Serializer (DisplayFormat.SCIENTIFIC, 10, 50);
         serializer.set_radix ('.');
         reload_functions ();
     }
 
+    public static FunctionManager get_default_function_manager ()
+    {
+        if (default_function_manager == null)
+            default_function_manager = new FunctionManager ();
+        return default_function_manager;
+    }
+
     private void reload_functions ()
     {
         functions.remove_all ();
-        reload_builtin_functions ();
         reload_custom_functions ();
+        reload_builtin_functions ();
     }
 
-    private reload_builtin_functions ()
+    private void reload_builtin_functions ()
     {
         add (new BuiltInMathFunction ("log", "Logarithm"));
         
@@ -101,7 +110,7 @@ public class FunctionManager : Object
         add (new BuiltInMathFunction ("twos", "Two's complement"));
     }
 
-    private reload_custom_functions ()
+    private void reload_custom_functions ()
     {
         string data;
         try
@@ -112,22 +121,23 @@ public class FunctionManager : Object
         {
             return;
         }
-
         var lines = data.split ("\n");
+        
         foreach (var line in lines)
         {
             MathFunction? function = parse_function_from_string (line);
             if (function != null)
-        	    functions.insert (function.name, function);
+                functions.insert (function.name, function);
         }
     }
 
     private MathFunction? parse_function_from_string (string? data)
     {
         // pattern: <name> (<a1>;<a2>;<a3>;...) = <expression> @ <description>
-
+        
         if (data == null)
             return null;
+        
         var i = data.index_of_char ('=');
         if (i < 0)
             return null;
@@ -136,11 +146,16 @@ public class FunctionManager : Object
         if (left == null || right == null)
             return null;
 
+        var expression = "";
+        var description = "";
         i = right.index_of_char ('@');
         if (i < 0)
-            return null;
-        var expression = right.substring (0, i).strip ();
-        var description = right.substring (i+1).strip ();
+            expression = right;
+        else
+        {
+            expression = right.substring (0, i).strip ();
+            description = right.substring (i+1).strip ();
+        }
         if (expression == null)
             return null;
 
@@ -151,13 +166,14 @@ public class FunctionManager : Object
         var argument_list = left.substring (i+1).strip ();
         if (name == null || argument_list == null)
             return null;
-        argument_list.replace (")", "");
+            
+        argument_list = argument_list.replace (")", "");
         string[] arguments = argument_list.split_set (";");
 
-        return (new MathFunction(name, arguments, expression, description));
+        return (new MathFunction (name, arguments, expression, description));
     }
 
-	private void save ()
+    private void save ()
     {
         var data = "";
         var iter = HashTableIter<string, MathFunction> (functions);
@@ -166,7 +182,7 @@ public class FunctionManager : Object
         while (iter.next (out name, out math_function))
         {
             if (!math_function.is_custom_function ())
-                continue;      //skip builtin functions
+                continue;       //skip builtin functions
 
             data += "%s(%s)=%s@%s\n".printf (math_function.name,
                                              string.joinv (";", math_function.arguments),
@@ -185,7 +201,7 @@ public class FunctionManager : Object
         }
     }
 
-	public string[] get_names ()
+    public string[] get_names ()
     {
         var names = new string[functions.size () + 1];
 
@@ -202,20 +218,39 @@ public class FunctionManager : Object
 
         return names;
     }
-
-    public void add (MathFunction new_function)
+    
+    private bool add (MathFunction new_function)
     {
-        MathFunction existing_function = get (new_function.name);
+        MathFunction? existing_function = get (new_function.name);
+
+        if (existing_function != null && !existing_function.is_custom_function ())
+            return false;
 
         if (existing_function != null)
             functions.replace (new_function.name, new_function);
         else
-            functions.insert (new_function.name, new_function);
-
-        if (new_function.is_custom_function ())
-            save ();
+			functions.insert (new_function.name, new_function);
+           
+        return true;
     }
 
+    public bool add_function_with_properties (string name, string arguments, string description, Parser? root_parser = null)
+    {
+		var function_string = name + "(" + arguments + ")=" + description;
+		MathFunction? new_function = this.parse_function_from_string (function_string);
+		
+		if (new_function == null || new_function.validate (root_parser) == false)
+		{
+			root_parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+			return false;
+		}
+			
+		bool val = this.add (new_function);
+        if (val)
+            save ();
+        return val;
+	}
+	
     public new MathFunction? get (string name)
     {
         return functions.lookup (name);
@@ -231,9 +266,9 @@ public class FunctionManager : Object
         }
     }
     
-    public is_function_defined (string name)
+    public bool is_function_defined (string name)
     {
-        return function.contains (name);
+		return functions.contains (name);
     }
     
     public MathFunction[] functions_eligible_for_autocompletion_for_text(string display_text)
@@ -248,7 +283,7 @@ public class FunctionManager : Object
         while (iter.next (out function_name, out function))
         {
             //check if any prefix with length > 2 of function_name is a suffix of display_text
-            for (int len = 2; len < = function_name.length; len++)
+            for (int len = 2; len <= function_name.length; len++)
             {
                 if (display_text.has_suffix (function_name.substring (0, len)))
                 {
@@ -259,5 +294,4 @@ public class FunctionManager : Object
         }
         return eligible_functions;
     }
-    //TODO: custom_function validation before creation
 }

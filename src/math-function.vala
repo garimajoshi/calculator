@@ -8,12 +8,12 @@
  * license.
  */
 
-public MathFunction : Object
+public class MathFunction : Object
 {
     private string _name;
     private string[] _arguments;
-    private string _expression;
-    private string _description;
+    private string? _expression;
+    private string? _description;
 
     public string name {
         get { return _name; }
@@ -23,17 +23,16 @@ public MathFunction : Object
         get { return _arguments; }
     }
 
-    public string expression {
+    public string? expression {
         get { return _expression; }
     }
     
-    public string description {
+    public string? description {
         get { return _description; }
     }
     
     public MathFunction (string function_name, string[] arguments, string? expression, string? description)
     {
-
         _name = function_name;
         _arguments = arguments;
         
@@ -48,28 +47,56 @@ public MathFunction : Object
             _description = "";
     }
     
-    Number? virtual evaluate (Number[] args, Equation equation, out representation_base, out error_code, out error_token, out error_start, out error_end)
+    public virtual Number? evaluate (Number[] args, Parser? root_parser = null)
     {
-        FunctionParser parser = new FunctionParser (this, equation, args);
-        var ans = parser.parse (text, out representation_base, out error_code, out error_token, out error_start, out error_end);
+        FunctionParser parser = new FunctionParser (this, root_parser, args);
+        
+        uint representation_base;
+    	ErrorCode error_code;
+		string? error_token;
+		uint error_start;
+		uint error_end;
+		
+        var ans = parser.parse (out representation_base, out error_code, out error_token, out error_start, out error_end);
         if (error_code == ErrorCode.NONE)
             return ans;
+        
+        root_parser.set_error (error_code);
         return null;
     }
+    
+    public bool validate (Parser? root_parser = null)
+    {
+		Number[] args = {};
+		FunctionParser parser = new FunctionParser (this, root_parser, args);
+		
+		uint representation_base;
+		ErrorCode error_code;
+		string? error_token;
+		uint error_start;
+		uint error_end;
+		
+		parser.create_parse_tree (out representation_base, out error_code, out error_token, out error_start, out error_end);
+		if (error_code == ErrorCode.NONE)
+            return true;
+            
+		root_parser.set_error (error_code);
+		return false;
+	}
 
-    bool virtual is_custom_function ()
+    public virtual bool is_custom_function ()
     {
         return true;
     }
 }
 
-private FunctionParser : EquationParser
+private class FunctionParser : Parser
 {
     private Number[] _parameters;
     private MathFunction _function;
-    public FunctionParser (MathFunction function, Equation equation, Number[] parameters)
+    public FunctionParser (MathFunction function, Parser? root_parser = null, Number[] parameters)
     {
-        base (equation, function.expression);
+        base (function.expression, root_parser.number_base, root_parser.wordlen, root_parser.angle_units);
         _function = function;
         _parameters = parameters;
     }
@@ -87,7 +114,7 @@ private FunctionParser : EquationParser
 
     protected override Number? get_variable (string name)
     {
-        string[] argument_names = _function.arguments ();
+        string[] argument_names = _function.arguments;
         for (int i = 0; i < argument_names.length; i++)
         {
             if (argument_names[i] == name)
@@ -101,7 +128,7 @@ private FunctionParser : EquationParser
     }
 }
 
-public BuiltInMathFunction : MathFunction
+public class BuiltInMathFunction : MathFunction
 {
     public BuiltInMathFunction (string function_name, string? description)
     {
@@ -110,18 +137,18 @@ public BuiltInMathFunction : MathFunction
         base (function_name, arguments, expression, description);
     }
     
-    Number? override evaluate (Number[] args, Equation equation, out representation_base, out error_code, out error_token, out error_start, out error_end)
+    public override Number? evaluate (Number[] args, Parser? root_parser = null)
     {
-        return evaluate_built_in_function (name, args);
+        return evaluate_built_in_function (name, args, root_parser);
     }
 
-    bool override is_custom_function ()
+    public override bool is_custom_function ()
     {
         return false;
     }
 }
 
-private Number? evaluate_built_in_function (string name, Number[] args)
+private Number? evaluate_built_in_function (string name, Number[] args, Parser? root_parser = null)
 {
     var lower_name = name.down ();
     var x = args[0];
@@ -149,7 +176,7 @@ private Number? evaluate_built_in_function (string name, Number[] args)
     else if (lower_name == "sgn") //signum function
         return x.sgn ();
     else if (lower_name == "arg")
-        return x.arg (equation.angle_units);
+        return x.arg (root_parser.angle_units);
     else if (lower_name == "conj")
         return x.conjugate ();
     else if (lower_name == "int")
@@ -167,17 +194,17 @@ private Number? evaluate_built_in_function (string name, Number[] args)
     else if (lower_name == "im")
         return x.imaginary_component ();
     else if (lower_name == "sin")
-        return x.sin (equation.angle_units);
+        return x.sin (root_parser.angle_units);
     else if (lower_name == "cos")
-        return x.cos (equation.angle_units);
+        return x.cos (root_parser.angle_units);
     else if (lower_name == "tan")
-        return x.tan (equation.angle_units);
+        return x.tan (root_parser.angle_units);
     else if (lower_name == "sin⁻¹" || lower_name == "asin")
-        return x.asin (equation.angle_units);
+        return x.asin (root_parser.angle_units);
     else if (lower_name == "cos⁻¹" || lower_name == "acos")
-        return x.acos (equation.angle_units);
+        return x.acos (root_parser.angle_units);
     else if (lower_name == "tan⁻¹" || lower_name == "atan")
-        return x.atan (equation.angle_units);
+        return x.atan (root_parser.angle_units);
     else if (lower_name == "sinh")
         return x.sinh ();
     else if (lower_name == "cosh")
@@ -191,8 +218,8 @@ private Number? evaluate_built_in_function (string name, Number[] args)
     else if (lower_name == "tanh⁻¹" || lower_name == "atanh")
         return x.atanh ();
     else if (lower_name == "ones")
-        return x.ones_complement (equation.wordlen);
+        return x.ones_complement (root_parser.wordlen);
     else if (lower_name == "twos")
-        return x.twos_complement (equation.wordlen);
+        return x.twos_complement (root_parser.wordlen);
     return null;
 }

@@ -36,8 +36,8 @@ gnome_calculator_SOURCES = \
 	number.vala \
 	serializer.vala \
 	unit.vala \
-    math-function.vala \
-    function-manager.vala \
+	math-function.vala \
+	function-manager.vala \
 	$(BUILT_SOURCES)
 
 gnome_calculator_VALAFLAGS = \
@@ -60,7 +60,9 @@ gcalccmd_SOURCES = \
 	equation-parser.vala \
 	number.vala \
 	serializer.vala \
-	unit.vala
+	unit.vala \
+	math-function.vala \
+	function-manager.vala
 
 gcalccmd_VALAFLAGS = \
 	--target-glib 2.32 \
@@ -99,7 +101,9 @@ test_equation_SOURCES = \
 	equation-parser.vala \
 	number.vala \
 	serializer.vala \
-	unit.vala
+	unit.vala \
+	math-function.vala \
+	function-manager.vala
 
 test_equation_VALAFLAGS = \
 	--target-glib 2.32 \
