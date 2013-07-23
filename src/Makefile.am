@@ -36,6 +36,8 @@ gnome_calculator_SOURCES = \
 	number.vala \
 	serializer.vala \
 	unit.vala \
+    math-function.vala \
+    function-manager.vala \
 	$(BUILT_SOURCES)
 
 gnome_calculator_VALAFLAGS = \
