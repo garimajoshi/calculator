@@ -139,8 +139,8 @@ public class AssignFunctionNode : ParseNode
     
     public override Number? solve ()
     {
-		if (left == null || right == null || left.left == null || left.right == null)
-            return null;
+        if (left == null || right == null || left.left == null || left.right == null)
+	    return null;
 
         var function_name = left.left.value;
         var arguments = left.right.value;
@@ -148,12 +148,12 @@ public class AssignFunctionNode : ParseNode
         
         FunctionManager function_manager = FunctionManager.get_default_function_manager();
         			
-		if (function_manager.add_function_with_properties (function_name, arguments, description, parser))
-		{
-			return new Number.integer (1);
-		}
+	if (function_manager.add_function_with_properties (function_name, arguments, description, parser))
+	{
+	    return new Number.integer (1);
+	}
 		
-		return new Number.integer (0);
+        return new Number.integer (0);
     }
 }
 
@@ -253,17 +253,17 @@ public class FunctionNameNode : NameNode
 
 public class FunctionArgumentsNode : NameNode
 {
-	public FunctionArgumentsNode (Parser parser, LexerToken? token, uint precedence, Associativity associativity, string arguments)
+    public FunctionArgumentsNode (Parser parser, LexerToken? token, uint precedence, Associativity associativity, string arguments)
     {
-		base (parser, token, precedence, associativity, arguments);
+        base (parser, token, precedence, associativity, arguments);
     }
 }
 
 public class FunctionDescriptionNode : NameNode
 {
-	public FunctionDescriptionNode (Parser parser, LexerToken? token, uint precedence, Associativity associativity, string description)
+    public FunctionDescriptionNode (Parser parser, LexerToken? token, uint precedence, Associativity associativity, string description)
     {
-		base (parser, token, precedence, associativity, description);
+        base (parser, token, precedence, associativity, description);
     }
 }
 
@@ -271,62 +271,62 @@ public class FunctionNode : ParseNode
 {
     public FunctionNode (Parser parser, LexerToken? token, uint precedence, Associativity associativity)
     {
-		base (parser, token, precedence, associativity);
+        base (parser, token, precedence, associativity);
     }
 
     public override Number? solve ()
     {
-		if (right == null || left == null)
-		{
-			parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-			return null;        
+        if (right == null || left == null)
+        {
+	    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+	    return null;        
         }
         
         var name = left.value;
         if (name == null)
         {
-			parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-			return null;
-		}
+	    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+	    return null;
+	}
 		
-		FunctionManager function_manager = FunctionManager.get_default_function_manager ();
-		MathFunction? function = function_manager.get (name);
-		if (function == null)
-		{
-			parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-			return null;
-		}
+	FunctionManager function_manager = FunctionManager.get_default_function_manager ();
+	MathFunction? function = function_manager.get (name);
+	if (function == null)
+	{
+	    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+	    return null;
+	}
 		
         Number[] args = {};
-		if (right is FunctionArgumentsNode)
-		{
-			var argument_list = right.value;
-			var arguments = argument_list.split_set (";");
+	if (right is FunctionArgumentsNode)
+	{
+	    var argument_list = right.value;
+	    var arguments = argument_list.split_set (";");
 
-			foreach (var argument in arguments)
-			{
-				argument = argument.strip ();
-				var argument_parser = new Parser (argument, parser.number_base, parser.wordlen, parser.angle_units);
+	    foreach (var argument in arguments)
+	    {
+		argument = argument.strip ();
+		var argument_parser = new Parser (argument, parser.number_base, parser.wordlen, parser.angle_units);
 		
-				uint representation_base;
-				ErrorCode error_code;
-				string? error_token;
-				uint error_start;
-				uint error_end;
+		uint representation_base;
+		ErrorCode error_code;
+		string? error_token;
+		uint error_start;
+		uint error_end;
 				
-				var ans = argument_parser.parse (out representation_base, out error_code, out error_token, out error_start, out error_end);
+		var ans = argument_parser.parse (out representation_base, out error_code, out error_token, out error_start, out error_end);
 				
-				if (error_code == ErrorCode.NONE && ans != null)
-					args += ans;
+		if (error_code == ErrorCode.NONE && ans != null)
+		    args += ans;
                 else
                 {
                     parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
                     return null;
-				}
-			}
 		}
-		else
-		{
+	    }
+	}
+	else
+	{
             var ans = right.solve ();
             if (ans != null)
                 args += ans;
@@ -334,10 +334,10 @@ public class FunctionNode : ParseNode
             {
                 parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
                 return null;
-			}
-		}
+	    }
+	}
 		
-		return function.evaluate (args, parser);
+	return function.evaluate (args, parser);
     }
 }
 
@@ -350,76 +350,76 @@ public class FunctionWithPowerNode : ParseNode
 
     public override Number? solve ()
     {  
-		if (right == null || left == null)
-		{
-			value = null;
-			parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-			return null;        
+	if (right == null || left == null)
+	{
+	    value = null;
+	    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+	    return null;        
         }
         
         var name = left.value;
         if (name == null)
         {
-			value = null;
-			parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-			return null;
-		}
+	    value = null;
+	    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+	    return null;
+	}
 		
-		FunctionManager function_manager = FunctionManager.get_default_function_manager ();
-		MathFunction? function = function_manager.get (name);
-		if (function == null)
-		{
-			value = null;
-			parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-			return null;
-		}
+	FunctionManager function_manager = FunctionManager.get_default_function_manager ();
+	MathFunction? function = function_manager.get (name);
+	if (function == null)
+	{
+	    value = null;
+	    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+	    return null;
+	}
 		
         Number[] args = {};
-		if (right is FunctionArgumentsNode)
-		{
-			var argument_list = right.value;
-			var arguments = argument_list.split_set (";");
+	if (right is FunctionArgumentsNode)
+	{
+	    var argument_list = right.value;
+	    var arguments = argument_list.split_set (";");
 
-			foreach (var argument in arguments)
-			{
-				argument = argument.strip ();
-				var argument_parser = new Parser (argument, parser.number_base, parser.wordlen, parser.angle_units);
+	    foreach (var argument in arguments)
+	    {
+		argument = argument.strip ();
+		var argument_parser = new Parser (argument, parser.number_base, parser.wordlen, parser.angle_units);
 		
-				uint representation_base;
-				ErrorCode error_code;
-				string? error_token;
-				uint error_start;
-				uint error_end;
+		uint representation_base;
+		ErrorCode error_code;
+		string? error_token;
+		uint error_start;
+		uint error_end;
 				
-				var ans = argument_parser.parse (out representation_base, out error_code, out error_token, out error_start, out error_end);
+		var ans = argument_parser.parse (out representation_base, out error_code, out error_token, out error_start, out error_end);
 				
-				if (error_code == ErrorCode.NONE && ans != null)
-					args += ans;
+		if (error_code == ErrorCode.NONE && ans != null)
+		    args += ans;
                 else
                 {
-					value = null;
+		    value = null;
                     parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
                     return null;
-				}
-			}
 		}
-		else
-		{
+	    }
+	}
+	else
+	{
             var ans = right.solve ();
             if (ans != null)
                 args += ans;
             else
             {
-				value = null;
+		value = null;
                 parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
                 return null;
-			}
-		}
+	    }
+	}
 		
         var pow = super_atoi (value);
         value = null;
 
-		var tmp = function.evaluate (args, parser);
+	var tmp = function.evaluate (args, parser);
         return tmp.xpowy_integer (pow);
     }
 }
@@ -919,9 +919,9 @@ public class Parser
         error_token_end = 0;
     }
 
-	public void create_parse_tree (out uint representation_base, out ErrorCode error_code, out string? error_token, out uint error_start, out uint error_end)
-	{
-		representation_base = number_base;
+    public void create_parse_tree (out uint representation_base, out ErrorCode error_code, out string? error_token, out uint error_start, out uint error_end)
+    {
+	representation_base = number_base;
         /* Scan string and split into tokens */
         lexer.scan ();
 
@@ -974,9 +974,8 @@ public class Parser
         error_code = ErrorCode.NONE;
         error_token = null;
         error_start = 0;
-        error_end = 0;
-        
-	}
+        error_end = 0;    
+    }
 	
     public void set_error (ErrorCode errorno, string? token = null, uint token_start = 0, uint token_end = 0)
     {
@@ -1321,9 +1320,9 @@ public class Parser
                 
                 if (token.type == LexerTokenType.L_R_BRACKET)
             	{	
-    				if (function_definition ())
-    				    return true;
-    			}
+    		    if (function_definition ())
+    			return true;
+    		}
 
                 if (!expression ())
                     return false;
@@ -1434,10 +1433,10 @@ public class Parser
         }
     }
 
-	private bool function_definition ()
-	{
-	    int num_token_parsed = 0;
-		var token = lexer.get_next_token ();
+    private bool function_definition ()
+    {
+	int num_token_parsed = 0;
+	var token = lexer.get_next_token ();
         num_token_parsed ++;
         
         string function_name = token.text;
@@ -1486,7 +1485,7 @@ public class Parser
         insert_into_tree (new FunctionDescriptionNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), expression));
         
         return true;
-	}
+    }
 
     private bool check_base ()
     {
@@ -2075,56 +2074,57 @@ public class Parser
             return false;
     }
 
-	private bool function_invocation ()
-	{
-		int num_token_parsed = 0;
-		var token = lexer.get_next_token ();
-		num_token_parsed ++;
-		string function_name = token.text;
+    private bool function_invocation ()
+    {
+	int num_token_parsed = 0;
+	var token = lexer.get_next_token ();
+	num_token_parsed ++;
+	string function_name = token.text;
 		
         insert_into_tree (new FunctionNameNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), function_name));
     	insert_into_tree (new FunctionNode (this, token, make_precedence_t (token.type), get_associativity (token)));
 
+	token = lexer.get_next_token ();
+	num_token_parsed ++;
+	if (token.type == LexerTokenType.L_R_BRACKET)
+	{
+	    token = lexer.get_next_token ();
+	    num_token_parsed ++;
+	    int m_depth = 0;
+	    string argument_list = "";
+	    
+	    while (token.type != LexerTokenType.R_R_BRACKET && m_depth == 0 && token.type != LexerTokenType.PL_EOS && token.type != LexerTokenType.ASSIGN)
+	    {
+		argument_list += token.text;
 		token = lexer.get_next_token ();
-		num_token_parsed ++;
 		if (token.type == LexerTokenType.L_R_BRACKET)
-		{
-			token = lexer.get_next_token ();
-			num_token_parsed ++;
-			int m_depth = 0;
-			string argument_list = "";
-			while (token.type != LexerTokenType.R_R_BRACKET && m_depth == 0 && token.type != LexerTokenType.PL_EOS && token.type != LexerTokenType.ASSIGN)
-			{
-				argument_list += token.text;
-				token = lexer.get_next_token ();
-				if (token.type == LexerTokenType.L_R_BRACKET)
-					m_depth++;
-				else if (token.type == LexerTokenType.R_R_BRACKET)
-					m_depth--;
-				num_token_parsed ++;
-			}
+		    m_depth++;
+		else if (token.type == LexerTokenType.R_R_BRACKET)
+		    m_depth--;
+		num_token_parsed ++;
+	    }
 			
-			if (token.type != LexerTokenType.R_R_BRACKET)
-			{
-				while (num_token_parsed-- > 0)
-					lexer.roll_back ();
-				return false;
-			}
+	    if (token.type != LexerTokenType.R_R_BRACKET)
+	    {
+		while (num_token_parsed-- > 0)
+		    lexer.roll_back ();
+		return false;
+	    }
 			
             insert_into_tree (new FunctionArgumentsNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), argument_list));
-		}
-		else
-		{
-			lexer.roll_back ();
-			if (!expression ())
-			{
-				lexer.roll_back ();
-				return false;
-			}
-		}
-		
-		return true;
 	}
+	else
+	{
+	    lexer.roll_back ();
+	    if (!expression ())
+	    {
+		lexer.roll_back ();
+		return false;
+	    }
+	}
+		
+	return true;
+    }
 
     private bool term ()
     {

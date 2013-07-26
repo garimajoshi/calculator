@@ -63,7 +63,7 @@ public enum LexerTokenType
     ABS,                /* | */
     POWER,              /* ^ */
     FACTORIAL,          /* ! */
-    PERCENTAGE,          /* % */
+    PERCENTAGE,         /* % */
     ARGUMENT_SEPARATOR  /* ; (Function argument separator) */
 }
 
@@ -228,8 +228,8 @@ public class PreLexer
 
         if (c == '%')
             return LexerTokenType.PERCENTAGE;
-            
-	    if (c == ';')
+        
+        if (c == ';')
             return LexerTokenType.ARGUMENT_SEPARATOR;
 
         if (c == ' ' || c == '\r' || c == '\t' || c == '\n')

@@ -49,13 +49,13 @@ public class MathFunction : Object
     
     public virtual Number? evaluate (Number[] args, Parser? root_parser = null)
     {
-        FunctionParser parser = new FunctionParser (this, root_parser, args);
+   	FunctionParser parser = new FunctionParser (this, root_parser, args);
         
         uint representation_base;
     	ErrorCode error_code;
-		string? error_token;
-		uint error_start;
-		uint error_end;
+	string? error_token;
+	uint error_start;
+	uint error_end;
 		
         var ans = parser.parse (out representation_base, out error_code, out error_token, out error_start, out error_end);
         if (error_code == ErrorCode.NONE)
@@ -67,22 +67,22 @@ public class MathFunction : Object
     
     public bool validate (Parser? root_parser = null)
     {
-		Number[] args = {};
-		FunctionParser parser = new FunctionParser (this, root_parser, args);
+	Number[] args = {};
+	FunctionParser parser = new FunctionParser (this, root_parser, args);
 		
-		uint representation_base;
-		ErrorCode error_code;
-		string? error_token;
-		uint error_start;
-		uint error_end;
+	uint representation_base;
+	ErrorCode error_code;
+	string? error_token;
+	uint error_start;
+	uint error_end;
 		
-		parser.create_parse_tree (out representation_base, out error_code, out error_token, out error_start, out error_end);
-		if (error_code == ErrorCode.NONE)
+	parser.create_parse_tree (out representation_base, out error_code, out error_token, out error_start, out error_end);
+	if (error_code == ErrorCode.NONE)
             return true;
             
-		root_parser.set_error (error_code);
-		return false;
-	}
+	root_parser.set_error (error_code);
+	return false;
+    }
 
     public virtual bool is_custom_function ()
     {

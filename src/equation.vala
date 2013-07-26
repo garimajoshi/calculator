@@ -211,10 +211,10 @@ private class EquationParser : Parser
 
     protected override bool function_is_defined (string name)
     {
-	    var function_manager = FunctionManager.get_default_function_manager();
+	var function_manager = FunctionManager.get_default_function_manager();
 		
-	    if (function_manager.is_function_defined (name))
-		    return true;
+	if (function_manager.is_function_defined (name))
+	    return true;
 			
         return equation.function_is_defined (name);
     }
