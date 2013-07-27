@@ -229,29 +229,29 @@ public class FunctionManager : Object
         if (existing_function != null)
             functions.replace (new_function.name, new_function);
         else
-	    functions.insert (new_function.name, new_function);
+            functions.insert (new_function.name, new_function);
            
         return true;
     }
 
     public bool add_function_with_properties (string name, string arguments, string description, Parser? root_parser = null)
     {
-	var function_string = name + "(" + arguments + ")=" + description;
-	MathFunction? new_function = this.parse_function_from_string (function_string);
-		
-	if (new_function == null || new_function.validate (root_parser) == false)
-	{
-	    root_parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-	    return false;
-	}
-			
-	bool is_function_added = this.add (new_function);
+        var function_string = name + "(" + arguments + ")=" + description;
+        MathFunction? new_function = this.parse_function_from_string (function_string);
+        
+        if (new_function == null || new_function.validate (root_parser) == false)
+        {
+            root_parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+            return false;
+        }
+            
+        var is_function_added = this.add (new_function);
         if (is_function_added)
             save ();
 
         return is_function_added;
-	}
-	
+    }
+    
     public new MathFunction? get (string name)
     {
         return functions.lookup (name);
@@ -269,7 +269,7 @@ public class FunctionManager : Object
     
     public bool is_function_defined (string name)
     {
-	return functions.contains (name);
+        return functions.contains (name);
     }
     
     public MathFunction[] functions_eligible_for_autocompletion_for_text(string display_text)
