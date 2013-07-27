@@ -153,11 +153,6 @@ public class Equation
         return false;
     }
 
-    public virtual Number? get_function (string name, Number x)
-    {
-        return null;
-    }
-
     public virtual Number? convert (Number x, string x_units, string z_units)
     {
         return null;
@@ -217,80 +212,6 @@ private class EquationParser : Parser
             return true;
             
         return equation.function_is_defined (name);
-    }
-
-    protected override Number? get_function (string name, Number x)
-    {
-        var lower_name = name.down ();
-
-        // FIXME: Re Im ?
-
-        if (lower_name == "log")
-            return x.logarithm (10); // FIXME: Default to ln
-        else if (lower_name.has_prefix ("log"))
-        {
-            var number_base = sub_atoi (lower_name.substring (3));
-            if (number_base < 0)
-                return null;
-            else
-                return x.logarithm (number_base);
-        }
-        else if (lower_name == "ln")
-            return x.ln ();
-        else if (lower_name == "sqrt") // √x
-            return x.sqrt ();
-        else if (lower_name == "abs") // |x|
-            return x.abs ();
-        else if (lower_name == "sgn")
-            return x.sgn ();
-        else if (lower_name == "arg")
-            return x.arg (equation.angle_units);
-        else if (lower_name == "conj")
-            return x.conjugate ();
-        else if (lower_name == "int")
-            return x.integer_component ();
-        else if (lower_name == "frac")
-            return x.fractional_component ();
-        else if (lower_name == "floor")
-            return x.floor ();
-        else if (lower_name == "ceil")
-            return x.ceiling ();
-        else if (lower_name == "round")
-            return x.round ();
-        else if (lower_name == "re")
-            return x.real_component ();
-        else if (lower_name == "im")
-            return x.imaginary_component ();
-        else if (lower_name == "sin")
-            return x.sin (equation.angle_units);
-        else if (lower_name == "cos")
-            return x.cos (equation.angle_units);
-        else if (lower_name == "tan")
-            return x.tan (equation.angle_units);
-        else if (lower_name == "sin⁻¹" || lower_name == "asin")
-            return x.asin (equation.angle_units);
-        else if (lower_name == "cos⁻¹" || lower_name == "acos")
-            return x.acos (equation.angle_units);
-        else if (lower_name == "tan⁻¹" || lower_name == "atan")
-            return x.atan (equation.angle_units);
-        else if (lower_name == "sinh")
-            return x.sinh ();
-        else if (lower_name == "cosh")
-            return x.cosh ();
-        else if (lower_name == "tanh")
-            return x.tanh ();
-        else if (lower_name == "sinh⁻¹" || lower_name == "asinh")
-            return x.asinh ();
-        else if (lower_name == "cosh⁻¹" || lower_name == "acosh")
-            return x.acosh ();
-        else if (lower_name == "tanh⁻¹" || lower_name == "atanh")
-            return x.atanh ();
-        else if (lower_name == "ones")
-            return x.ones_complement (equation.wordlen);
-        else if (lower_name == "twos")
-            return x.twos_complement (equation.wordlen);
-        else
-            return equation.get_function (name, x);
     }
 
     protected override Number? convert (Number x, string x_units, string z_units)

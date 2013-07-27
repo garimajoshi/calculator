@@ -241,7 +241,7 @@ public class FunctionManager : Object
         
         if (new_function == null || new_function.validate (root_parser) == false)
         {
-            root_parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+            root_parser.set_error (ErrorCode.INVALID);
             return false;
         }
             

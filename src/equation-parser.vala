@@ -148,8 +148,9 @@ public class AssignFunctionNode : ParseNode
         
         FunctionManager function_manager = FunctionManager.get_default_function_manager();
         if (function_manager.add_function_with_properties (function_name, arguments, description, parser))
-            return new Number.integer (1);
-        return new Number.integer (0);
+            return new Number.integer (0);
+			
+        return null;
     }
 }
 
@@ -902,11 +903,6 @@ public class Parser
         return false;
     }
 
-    public virtual Number? get_function (string name, Number x)
-    {
-        return null;
-    }
-
     public virtual Number? convert (Number x, string x_units, string z_units)
     {
         return null;
@@ -1372,7 +1368,7 @@ public class Parser
         }
         
         insert_into_tree (new FunctionNameNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), function_name));
-        insert_into_tree (new FunctionNode (this, null, make_precedence_p (Precedence.FUNCTION), get_associativity_p (Precedence.FUNCTION)));
+        insert_into_tree (new FunctionNode (this, null, make_precedence_p (Precedence.FUNCTION), get_associativity_p (Precedence.FUNCTION), null));
         insert_into_tree (new FunctionArgumentsNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), argument_list));
         insert_into_tree (new AssignFunctionNode (this, assign_token, 0, get_associativity (assign_token)));
         insert_into_tree (new FunctionDescriptionNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), expression));
