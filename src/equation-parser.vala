@@ -319,7 +319,7 @@ public class FunctionNode : ParseNode
                     args += ans;
                 else
                 {
-                    parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+                    parser.set_error (ErrorCode.INVALID);
                     return null;
                 }
             }
@@ -339,7 +339,9 @@ public class FunctionNode : ParseNode
         FunctionManager function_manager = FunctionManager.get_default_function_manager ();
         var tmp = function_manager.evaluate_function (name, args, parser);
         
-        return tmp.xpowy_integer (pow);
+        if (tmp != null)
+            tmp = tmp.xpowy_integer (pow);
+        return tmp;
     }
 }
 

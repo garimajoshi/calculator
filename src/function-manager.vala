@@ -292,7 +292,7 @@ public class FunctionManager : Object
             return null;
         }
         
-        function.evaluate (args, parser);
+        return function.evaluate (args, parser);
     }
     
     public MathFunction[] functions_eligible_for_autocompletion_for_text(string display_text)
