@@ -160,8 +160,8 @@ private Number? evaluate_built_in_function (string name, Number[] args, Parser? 
             return x.logarithm (10); // FIXME: Default to ln
         else
         {
-            var number_base = args[1].to_integer ();
-            if (number_base < 0)
+            var log_base = args[1].to_integer ();
+            if (log_base < 0)
                 return null;
             else
                 return x.logarithm (number_base);

@@ -269,7 +269,30 @@ public class FunctionManager : Object
     
     public bool is_function_defined (string name)
     {
+        name = name.down ();
+        if (name.has_prefix ("log") && sub_atoi (name.substring (3)) >= 0)
+            return true;
         return functions.contains (name);
+    }
+    
+    public Number? evaluate_function (string name, Number[] args, Parser parser)
+    {
+        name = name.down ();
+        if (name.has_prefix ("log") && sub_atoi (name.substring (3)) >= 0)
+        {
+            Number log_base = Number.integer (sub_atoi (name.substring (3)));
+            args += log_base;
+            name = "log";
+        }
+        
+        MathFunction? function = this.get (name);
+        if (function == null)
+        {
+            parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+            return null;
+        }
+        
+        function.evaluate (args, parser);
     }
     
     public MathFunction[] functions_eligible_for_autocompletion_for_text(string display_text)

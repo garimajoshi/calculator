@@ -149,7 +149,7 @@ public class AssignFunctionNode : ParseNode
         FunctionManager function_manager = FunctionManager.get_default_function_manager();
         if (function_manager.add_function_with_properties (function_name, arguments, description, parser))
             return new Number.integer (0);
-			
+            
         return null;
     }
 }
@@ -296,14 +296,6 @@ public class FunctionNode : ParseNode
             pow = -pow;
         }
 
-        FunctionManager function_manager = FunctionManager.get_default_function_manager ();
-        MathFunction? function = function_manager.get (name);
-        if (function == null)
-        {
-            parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-            return null;
-        }
-        
         Number[] args = {};
         if (right is FunctionArgumentsNode)
         {
@@ -343,8 +335,10 @@ public class FunctionNode : ParseNode
                 return null;
             }
         }
-
-        var tmp = function.evaluate (args, parser);
+        
+        FunctionManager function_manager = FunctionManager.get_default_function_manager ();
+        var tmp = function_manager.evaluate_function (name, args, parser);
+        
         return tmp.xpowy_integer (pow);
     }
 }
@@ -1210,7 +1204,7 @@ public class Parser
                 if (token.type == LexerTokenType.L_R_BRACKET)
                 {   
                     if (function_definition ())
-						return true;
+                        return true;
                 }
 
                 if (!expression ())
