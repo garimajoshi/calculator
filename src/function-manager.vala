@@ -269,23 +269,24 @@ public class FunctionManager : Object
     
     public bool is_function_defined (string name)
     {
-        name = name.down ();
-        if (name.has_prefix ("log") && sub_atoi (name.substring (3)) >= 0)
+        var lower_name = name.down ();
+        if (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) >= 0)
             return true;
-        return functions.contains (name);
+        return functions.contains (lower_name);
     }
     
-    public Number? evaluate_function (string name, Number[] args, Parser parser)
+    public Number? evaluate_function (string name, Number[] arguments, Parser parser)
     {
-        name = name.down ();
-        if (name.has_prefix ("log") && sub_atoi (name.substring (3)) >= 0)
+        var lower_name = name.down ();
+        var args = arguments;
+        if (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) >= 0)
         {
-            Number log_base = Number.integer (sub_atoi (name.substring (3)));
+            Number log_base = new Number.integer (sub_atoi (lower_name.substring (3)));
             args += log_base;
-            name = "log";
+            lower_name = "log";
         }
         
-        MathFunction? function = this.get (name);
+        MathFunction? function = this.get (lower_name);
         if (function == null)
         {
             parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
@@ -295,7 +296,7 @@ public class FunctionManager : Object
         return function.evaluate (args, parser);
     }
     
-    public MathFunction[] functions_eligible_for_autocompletion_for_text(string display_text)
+    public MathFunction[] functions_eligible_for_autocompletion_for_text (string display_text)
     {
         MathFunction[] eligible_functions= {};
         if (display_text.length <= 1)

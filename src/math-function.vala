@@ -164,7 +164,7 @@ private Number? evaluate_built_in_function (string name, Number[] args, Parser? 
             if (log_base < 0)
                 return null;
             else
-                return x.logarithm (number_base);
+                return x.logarithm (log_base);
         }
     }
     else if (lower_name == "ln")
