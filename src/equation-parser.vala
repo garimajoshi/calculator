@@ -305,7 +305,7 @@ public class FunctionNode : ParseNode
             foreach (var argument in arguments)
             {
                 argument = argument.strip ();
-                var argument_parser = new Parser (argument, parser.number_base, parser.wordlen, parser.angle_units);
+                var argument_parser = new ExpressionParser (argument, parser);
         
                 uint representation_base;
                 ErrorCode error_code;
