@@ -809,7 +809,7 @@ public class Parser
         error_token_end = 0;
     }
 
-    public void create_parse_tree (out uint representation_base, out ErrorCode error_code, out string? error_token, out uint error_start, out uint error_end)
+    public bool create_parse_tree (out uint representation_base, out ErrorCode error_code, out string? error_token, out uint error_start, out uint error_end)
     {
         representation_base = number_base;
         /* Scan string and split into tokens */
@@ -832,7 +832,7 @@ public class Parser
                 error_token = this.error_token;
                 error_start = error_token_start;
                 error_end = error_token_end;
-                return;
+                return false;
             }
         }
         if (token.type != LexerTokenType.PL_EOS)
@@ -845,7 +845,7 @@ public class Parser
             error_token = this.error_token;
             error_start = error_token_start;
             error_end = error_token_end;
-            return;
+            return false;
         }
 
         /* Input can't be parsed with grammar. */
@@ -858,13 +858,15 @@ public class Parser
             error_token = this.error_token;
             error_start = error_token_start;
             error_end = error_token_end;
-            return;
+            return false;
         }
         
         error_code = ErrorCode.NONE;
         error_token = null;
         error_start = 0;
-        error_end = 0;    
+        error_end = 0;  
+        
+        return true;
     }
     
     public void set_error (ErrorCode errorno, string? token = null, uint token_start = 0, uint token_end = 0)
@@ -907,8 +909,11 @@ public class Parser
     /* Start parsing input string. And call evaluate on success. */
     public Number? parse (out uint representation_base, out ErrorCode error_code, out string? error_token, out uint error_start, out uint error_end)
     {
-        create_parse_tree (out representation_base, out error_code, out error_token, out error_start, out error_end);
+        var is_successfully_parsed = create_parse_tree (out representation_base, out error_code, out error_token, out error_start, out error_end);
 
+        if (!is_successfully_parsed)
+            return null;
+            
         var ans = root.solve ();
         if (ans == null)
         {
