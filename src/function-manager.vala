@@ -279,7 +279,7 @@ public class FunctionManager : Object
     {
         var lower_name = name.down ();
         var args = arguments;
-        if (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) >= 0)
+        if (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) > 0)
         {
             Number log_base = new Number.integer (sub_atoi (lower_name.substring (3)));
             args += log_base;
