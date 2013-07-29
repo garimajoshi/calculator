@@ -90,13 +90,39 @@ public class MathFunction : Object
     }
 }
 
-private class FunctionParser : Parser
+public class ExpressionParser : Parser
+{
+    private Parser? _root_parser;
+    
+    public ExpressionParser (string expression, Parser? root_parser = null)
+    {
+        base (expression, root_parser.number_base, root_parser.wordlen, root_parser.angle_units);
+        _root_parser = root_parser;
+    }
+
+    protected override bool variable_is_defined (string name)
+    {
+        if (base.variable_is_defined (name))
+            return true;
+        return _root_parser.variable_is_defined (name);
+    }
+
+    protected override Number? get_variable (string name)
+    {
+        var value = base.get_variable (name);
+        if (value != null)
+            return value;
+        return _root_parser.get_variable (name);
+    }
+}
+
+private class FunctionParser : ExpressionParser
 {
     private Number[] _parameters;
     private MathFunction _function;
     public FunctionParser (MathFunction function, Parser? root_parser = null, Number[] parameters)
     {
-        base (function.expression, root_parser.number_base, root_parser.wordlen, root_parser.angle_units);
+        base (function.expression, root_parser);
         _function = function;
         _parameters = parameters;
     }
