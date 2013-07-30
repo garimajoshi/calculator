@@ -114,6 +114,13 @@ public class ExpressionParser : Parser
             return value;
         return _root_parser.get_variable (name);
     }
+    
+    protected override bool function_is_defined (string name)
+    {
+        if (base.function_is_defined (name))
+            return true;
+        return _root_parser.function_is_defined (name);
+    } 
 }
 
 private class FunctionParser : ExpressionParser
