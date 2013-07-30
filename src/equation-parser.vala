@@ -1120,7 +1120,7 @@ public class Parser
     private bool statement ()
     {
         var token = lexer.get_next_token ();
-        if (token.type == LexerTokenType.VARIABLE)
+        if (token.type == LexerTokenType.VARIABLE || token.type == LexerTokenType.FUNCTION)
         {
             var token_old = token;
             token = lexer.get_next_token ();
