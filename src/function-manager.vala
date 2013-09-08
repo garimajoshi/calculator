@@ -298,25 +298,21 @@ public class FunctionManager : Object
     
     public MathFunction[] functions_eligible_for_autocompletion_for_text (string display_text)
     {
-        MathFunction[] eligible_functions= {};
+        MathFunction[] eligible_functions = {};
         if (display_text.length <= 1)
             return eligible_functions;
-
+            
+        string display_text_case_insensitive = display_text.down ();
         var iter = HashTableIter<string, MathFunction> (functions);
         string function_name;
         MathFunction function;
         while (iter.next (out function_name, out function))
         {
-            //check if any prefix with length > 2 of function_name is a suffix of display_text
-            for (int len = 2; len <= function_name.length; len++)
-            {
-                if (display_text.has_suffix (function_name.substring (0, len)))
-                {
-                    eligible_functions += function;
-                    break;
-                }
-            }
+            string function_name_case_insensitive = function_name.down ();
+            if (function_name_case_insensitive.has_prefix(display_text_case_insensitive))
+                eligible_functions += function;
         }
+        
         return eligible_functions;
     }
 }

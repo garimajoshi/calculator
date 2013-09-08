@@ -44,6 +44,7 @@ gnome_calculator_VALAFLAGS = \
 	--target-glib 2.32 \
 	--pkg posix \
 	--pkg gtk+-3.0 \
+	--pkg gtksourceview-3.0 \
 	--pkg libxml-2.0
 
 gnome_calculator_LDADD = \

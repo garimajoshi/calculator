@@ -104,6 +104,7 @@ public class ExpressionParser : Parser
     {
         if (base.variable_is_defined (name))
             return true;
+            
         return _root_parser.variable_is_defined (name);
     }
 
