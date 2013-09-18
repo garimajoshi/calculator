@@ -38,6 +38,7 @@ gnome_calculator_SOURCES = \
 	unit.vala \
 	math-function.vala \
 	function-manager.vala \
+	math-function-popup.vala \
 	$(BUILT_SOURCES)
 
 gnome_calculator_VALAFLAGS = \

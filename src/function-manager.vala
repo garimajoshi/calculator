@@ -201,6 +201,30 @@ public class FunctionManager : Object
         }
     }
 
+    private string[] array_sort_string (string[] array)
+    {
+        bool swapped = true;
+        int j = (array[array.length - 1] == null ? 1 : 0);
+        string tmp;
+
+        while (swapped)
+        {
+            swapped = false;
+            j++;
+            for (int i = 0; i < array.length - j; i++)
+            {
+                if (array[i] < array[i + 1])
+                {
+                    tmp = array[i];
+                    array[i] = array[i + 1];
+                    array[i + 1] = tmp;
+                    swapped = true;
+                }
+            }
+        }
+        return array;
+    }
+
     public string[] get_names ()
     {
         var names = new string[functions.size () + 1];
@@ -216,7 +240,7 @@ public class FunctionManager : Object
         }
         names[i] = null;
 
-        return names;
+        return array_sort_string (names);
     }
     
     private bool add (MathFunction new_function)
@@ -296,6 +320,30 @@ public class FunctionManager : Object
         return function.evaluate (args, parser);
     }
     
+    private MathFunction[] array_sort_math_function (MathFunction[] array)
+    {
+        bool swapped = true;
+        int j = (array[array.length - 1] == null ? 1 : 0);
+        MathFunction tmp;
+
+        while (swapped)
+        {
+            swapped = false;
+            j++;
+            for (int i = 0; i < array.length - j; i++)
+            {
+                if (array[i].name > array[i + 1].name)
+                {
+                    tmp = array[i];
+                    array[i] = array[i + 1];
+                    array[i + 1] = tmp;
+                    swapped = true;
+                }
+            }
+        }
+        return array;
+    }
+	
     public MathFunction[] functions_eligible_for_autocompletion_for_text (string display_text)
     {
         MathFunction[] eligible_functions = {};
@@ -313,6 +361,6 @@ public class FunctionManager : Object
                 eligible_functions += function;
         }
         
-        return eligible_functions;
+        return array_sort_math_function (eligible_functions);
     }
 }

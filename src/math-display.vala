@@ -446,14 +446,17 @@ public class FunctionCompletionProvider : GLib.Object, Gtk.SourceCompletionProvi
         string proposed_string = proposal.get_text ();
         Gtk.TextBuffer buffer = iter.get_buffer ();
  
-        Gtk.TextIter start_iter;
+        Gtk.TextIter start_iter, end;
         buffer.get_iter_at_offset (out start_iter, iter.get_offset ());
         FunctionCompletionProvider.move_iter_to_name_start (ref start_iter);
 
         buffer.place_cursor (start_iter);
         buffer.delete_range (start_iter, iter);
+        proposed_string += "()";
         buffer.insert_at_cursor (proposed_string, proposed_string.length);
-        
+        buffer.get_iter_at_mark (out end, buffer.get_insert ());
+        end.backward_chars (1);
+        buffer.place_cursor (end);
         return true;
     }
 }
