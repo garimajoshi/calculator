@@ -357,7 +357,7 @@ public class FunctionManager : Object
         while (iter.next (out function_name, out function))
         {
             string function_name_case_insensitive = function_name.down ();
-            if (function_name_case_insensitive.has_prefix(display_text_case_insensitive))
+            if (function_name_case_insensitive.has_prefix (display_text_case_insensitive))
                 eligible_functions += function;
         }
         

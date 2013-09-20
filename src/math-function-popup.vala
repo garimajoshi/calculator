@@ -51,7 +51,7 @@ public class MathFunctionPopup : Gtk.Window
             var expression = "(x)";
             if (is_custom)
                 expression = "(%s)".printf (string.joinv (";", math_function.arguments));
-            var entry = make_function_entry (names[i], expression, is_custom);
+            var entry = make_function_entry (names[i], expression, math_function, is_custom);
             entry.show ();
             vbox.pack_end (entry, false, true, 0);
         }
@@ -60,6 +60,7 @@ public class MathFunctionPopup : Gtk.Window
         entry.show ();
 
         function_name_entry = new Gtk.Entry ();
+        function_name_entry.set_text ("Type function name");
         function_name_entry.key_press_event.connect (function_name_key_press_cb);
         function_name_entry.changed.connect (function_name_changed_cb);
         function_name_entry.set_margin_right (5); 
@@ -161,7 +162,7 @@ public class MathFunctionPopup : Gtk.Window
         widget.get_toplevel ().destroy ();
     }
 
-    private Gtk.Box make_function_entry (string name, string expression, bool writable)
+    private Gtk.Box make_function_entry (string name, string expression, MathFunction math_function, bool writable)
     {
         var hbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
 
@@ -169,6 +170,8 @@ public class MathFunctionPopup : Gtk.Window
         
         var button = new Gtk.Button ();
         button.set_data<string> ("function_name", name);
+        string function_details = "%s".printf (math_function.description);
+        button.set_tooltip_text (function_details);
         button.clicked.connect (insert_function_cb);
         button.set_relief (Gtk.ReliefStyle.NONE);
         hbox.pack_start (button, true, true, 0);
