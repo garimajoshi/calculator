@@ -210,7 +210,7 @@ private class EquationParser : Parser
         
         if (function_manager.is_function_defined (name))
             return true;
-            
+
         return equation.function_is_defined (name);
     }
 
