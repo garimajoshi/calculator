@@ -87,10 +87,11 @@ public class MathDisplay : Gtk.Viewport
         try 
         {
             completion.add_provider (new FunctionCompletionProvider ());
+            completion.add_provider (new VariableCompletionProvider (equation));
         }
         catch (Error e)
         {
-            warning ("Could not add FunctionCompletionProvider to source-view");
+            warning ("Could not add CompletionProvider to source-view");
         }
     }
 
@@ -100,7 +101,8 @@ public class MathDisplay : Gtk.Viewport
         if (providers_list.length () > 0)
         {
             MathFunction[] functions = FunctionCompletionProvider.get_matches_for_completion_at_cursor (equation);
-            return (functions.length > 0 ? true : false);
+            string[] variables = VariableCompletionProvider.get_matches_for_completion_at_cursor (equation, equation.variables);
+            return ((functions.length > 0 || variables.length > 0) ? true : false);
         }
         return false;
     }
@@ -381,48 +383,13 @@ public class MathDisplay : Gtk.Viewport
     }
 }
 
-public class FunctionCompletionProvider : GLib.Object, Gtk.SourceCompletionProvider
+public class CompletionProvider : GLib.Object, Gtk.SourceCompletionProvider
 {
-    public string get_name ()
+    public virtual string get_name ()
     {
-        return "Defined Functions";
+        return "";
     }
-
-    public static MathFunction[] get_matches_for_completion_at_cursor (Gtk.TextBuffer text_buffer)
-    {
-        Gtk.TextIter start_iter, end_iter;
-        text_buffer.get_iter_at_mark (out end_iter, text_buffer.get_insert ());
-        text_buffer.get_iter_at_mark (out start_iter, text_buffer.get_insert ());
-        FunctionCompletionProvider.move_iter_to_name_start (ref start_iter);
-
-        string search_pattern = text_buffer.get_slice (start_iter, end_iter, false);
-
-        FunctionManager function_manager = FunctionManager.get_default_function_manager ();
-        MathFunction[] functions = function_manager.functions_eligible_for_autocompletion_for_text (search_pattern);
-        return functions;
-    }
-
-    public void populate (Gtk.SourceCompletionContext context)
-    {
-        Gtk.TextBuffer text_buffer = context.get_iter ().get_buffer ();
-        MathFunction[] functions = FunctionCompletionProvider.get_matches_for_completion_at_cursor (text_buffer);
-
-        List<Gtk.SourceCompletionItem>? proposals = null;
-        if (functions.length > 0)
-        {
-            proposals = new List<Gtk.SourceCompletionItem> ();
-            foreach (var function in functions)
-            {
-                string display_text = "%s(%s)".printf (function.name, string.joinv (";", function.arguments));
-                string details_text = "%s(%s)=%s\n%s".printf (function.name, string.joinv (";", function.arguments),
-                                                              function.expression, function.description);
-                var proposal = new Gtk.SourceCompletionItem (display_text, function.name, null, details_text);
-                proposals.append (proposal);
-            }
-        }
-        context.add_proposals (this, proposals, true);
-    }
-
+    
     public static void move_iter_to_name_start (ref Gtk.TextIter iter)
     {
         while (iter.backward_char ())
@@ -436,27 +403,126 @@ public class FunctionCompletionProvider : GLib.Object, Gtk.SourceCompletionProvi
         }
     }
     
-    public bool get_start_iter (Gtk.SourceCompletionContext context, Gtk.SourceCompletionProposal proposal, Gtk.TextIter iter)
+    public virtual bool get_start_iter (Gtk.SourceCompletionContext context, Gtk.SourceCompletionProposal proposal, Gtk.TextIter iter)
     {
         return false;
     }
 
-    public bool activate_proposal (Gtk.SourceCompletionProposal proposal, Gtk.TextIter iter)
+    public virtual bool activate_proposal (Gtk.SourceCompletionProposal proposal, Gtk.TextIter iter)
     {
         string proposed_string = proposal.get_text ();
         Gtk.TextBuffer buffer = iter.get_buffer ();
  
         Gtk.TextIter start_iter, end;
         buffer.get_iter_at_offset (out start_iter, iter.get_offset ());
-        FunctionCompletionProvider.move_iter_to_name_start (ref start_iter);
+        move_iter_to_name_start (ref start_iter);
 
         buffer.place_cursor (start_iter);
         buffer.delete_range (start_iter, iter);
-        proposed_string += "()";
         buffer.insert_at_cursor (proposed_string, proposed_string.length);
-        buffer.get_iter_at_mark (out end, buffer.get_insert ());
-        end.backward_chars (1);
-        buffer.place_cursor (end);
+        if (proposed_string.contains ("()"))
+        {
+            buffer.get_iter_at_mark (out end, buffer.get_insert ());
+            end.backward_chars (1);
+            buffer.place_cursor (end);
+        }
         return true;
+    }
+
+    public virtual void populate (Gtk.SourceCompletionContext context) {}
+}
+
+public class FunctionCompletionProvider : CompletionProvider
+{
+    public override string get_name ()
+    {
+        return "Defined Functions";
+    }
+
+    public static MathFunction[] get_matches_for_completion_at_cursor (Gtk.TextBuffer text_buffer)
+    {
+        Gtk.TextIter start_iter, end_iter;
+        text_buffer.get_iter_at_mark (out end_iter, text_buffer.get_insert ());
+        text_buffer.get_iter_at_mark (out start_iter, text_buffer.get_insert ());
+        CompletionProvider.move_iter_to_name_start (ref start_iter);
+
+        string search_pattern = text_buffer.get_slice (start_iter, end_iter, false);
+
+        FunctionManager function_manager = FunctionManager.get_default_function_manager ();
+        MathFunction[] functions = function_manager.functions_eligible_for_autocompletion_for_text (search_pattern);
+        return functions;
+    }
+
+    public override void populate (Gtk.SourceCompletionContext context)
+    {
+        Gtk.TextBuffer text_buffer = context.get_iter ().get_buffer ();
+        MathFunction[] functions = get_matches_for_completion_at_cursor (text_buffer);
+
+        List<Gtk.SourceCompletionItem>? proposals = null;
+        if (functions.length > 0)
+        {
+            proposals = new List<Gtk.SourceCompletionItem> ();
+            foreach (var function in functions)
+            {
+                string display_text = "%s(%s)".printf (function.name, string.joinv (";", function.arguments));
+                string details_text = "%s".printf (function.description);
+                string label_text = function.name + "()";
+                if (function.is_custom_function ())
+                    details_text = "%s(%s)=%s\n%s".printf (function.name, string.joinv (";", function.arguments),
+                                                           function.expression, function.description);
+                var proposal = new Gtk.SourceCompletionItem (display_text, label_text, null, details_text);
+                proposals.append (proposal);
+            }
+        }
+        context.add_proposals (this, proposals, true);
+    }
+}
+
+public class VariableCompletionProvider : CompletionProvider
+{
+    private MathEquation _equation;
+
+    public VariableCompletionProvider (MathEquation equation)
+    {
+        _equation = equation;
+    }
+
+    public override string get_name ()
+    {
+        return "Defined Variables";
+    }
+
+    public static string[] get_matches_for_completion_at_cursor (Gtk.TextBuffer text_buffer, MathVariables variables )
+    {
+        Gtk.TextIter start_iter, end_iter;
+        text_buffer.get_iter_at_mark (out end_iter, text_buffer.get_insert ());
+        text_buffer.get_iter_at_mark (out start_iter, text_buffer.get_insert ());
+        CompletionProvider.move_iter_to_name_start (ref start_iter);
+
+        string search_pattern = text_buffer.get_slice (start_iter, end_iter, false);
+        string[] math_variables = variables.variables_eligible_for_autocompletion (search_pattern);
+        return math_variables;
+    }
+
+    public override void populate (Gtk.SourceCompletionContext context)
+    {
+        Gtk.TextBuffer text_buffer = context.get_iter ().get_buffer ();
+        string[] variables = get_matches_for_completion_at_cursor (text_buffer, _equation.variables);
+
+        List<Gtk.SourceCompletionItem>? proposals = null;
+        if (variables.length > 0)
+        {
+            proposals = new List<Gtk.SourceCompletionItem> ();
+            foreach (var variable in variables)
+            {
+                string display_text = "%s".printf (variable);
+                string details_text = _equation.serializer.to_string (_equation.variables.get (variable));
+                string label_text = variable;
+
+                var proposal = new Gtk.SourceCompletionItem (display_text, label_text, null, details_text);
+                proposals.append (proposal);
+            }
+        }
+        context.add_proposals (this, proposals, true);
     }
 }
