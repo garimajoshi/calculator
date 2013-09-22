@@ -61,7 +61,7 @@ public class MathFunction : Object
         if (error_code == ErrorCode.NONE)
             return ans;
         
-        root_parser.set_error (error_code);
+        root_parser.set_error (error_code, error_token, error_start, error_end);
         return null;
     }
     
@@ -80,7 +80,7 @@ public class MathFunction : Object
         if (error_code == ErrorCode.NONE)
             return true;
             
-        root_parser.set_error (error_code);
+        root_parser.set_error (error_code, error_token, error_start, error_end);
         return false;
     }
 

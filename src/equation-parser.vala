@@ -319,7 +319,7 @@ public class FunctionNode : ParseNode
                     args += ans;
                 else
                 {
-                    parser.set_error (ErrorCode.INVALID);
+                    parser.set_error (ErrorCode.UNKNOWN_VARIABLE, error_token, error_start, error_end);
                     return null;
                 }
             }
