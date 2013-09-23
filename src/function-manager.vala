@@ -278,7 +278,10 @@ public class FunctionManager : Object
     
     public new MathFunction? get (string name)
     {
-        return functions.lookup (name);
+        MathFunction? function = functions.lookup (name);
+        if (function != null)
+            return function;
+        return functions.lookup (name.down ());
     }
 
     public void delete (string name)
@@ -296,7 +299,7 @@ public class FunctionManager : Object
         var lower_name = name.down ();
         if (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) >= 0)
             return true;
-        return (functions.contains (name) || functions.contains (lower_name));
+        return functions.contains (name) || functions.contains (lower_name);
     }
     
     public Number? evaluate_function (string name, Number[] arguments, Parser parser)
@@ -313,12 +316,8 @@ public class FunctionManager : Object
         MathFunction? function = this.get (name);
         if (function == null)
         {
-            function = this.get (lower_name);
-            if (function == null)
-            {
-                parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-                return null;
-            }
+            parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+            return null;
         }
         
         return function.evaluate (args, parser);
