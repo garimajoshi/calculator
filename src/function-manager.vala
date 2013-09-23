@@ -296,7 +296,7 @@ public class FunctionManager : Object
         var lower_name = name.down ();
         if (lower_name.has_prefix ("log") && sub_atoi (lower_name.substring (3)) >= 0)
             return true;
-        return functions.contains (lower_name);
+        return (functions.contains (name) || functions.contains (lower_name));
     }
     
     public Number? evaluate_function (string name, Number[] arguments, Parser parser)
@@ -310,11 +310,15 @@ public class FunctionManager : Object
             lower_name = "log";
         }
         
-        MathFunction? function = this.get (lower_name);
+        MathFunction? function = this.get (name);
         if (function == null)
         {
-            parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
-            return null;
+            function = this.get (lower_name);
+            if (function == null)
+            {
+                parser.set_error (ErrorCode.UNKNOWN_FUNCTION);
+                return null;
+            }
         }
         
         return function.evaluate (args, parser);
