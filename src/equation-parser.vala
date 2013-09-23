@@ -1962,13 +1962,16 @@ public class Parser
         if (token.type == LexerTokenType.VARIABLE)
         {
             var token_old = token;
+            token = lexer.get_next_token ();
             /* Check if the token is a valid variable or not. */
-            if (!check_variable (token.text))
+            if (!check_variable (token_old.text))
             {
-                set_error (ErrorCode.UNKNOWN_VARIABLE, token.text, token.start_index, token.end_index);
+                if (token.text == "(")
+                    set_error (ErrorCode.UNKNOWN_FUNCTION, token_old.text, token_old.start_index, token_old.end_index);
+                else
+                    set_error (ErrorCode.UNKNOWN_VARIABLE, token_old.text, token_old.start_index, token_old.end_index);
                 return false;
             }
-            token = lexer.get_next_token ();
             if (token.type == LexerTokenType.SUP_NUMBER)
                 insert_into_tree (new VariableWithPowerNode (this, token_old, make_precedence_t (token_old.type), get_associativity (token_old), token.text));
             else
