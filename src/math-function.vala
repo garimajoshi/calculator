@@ -67,9 +67,23 @@ public class MathFunction : Object
     
     public bool validate (Parser? root_parser = null)
     {
+        if (!is_name_valid (name))
+        {
+            root_parser.set_error (ErrorCode.INVALID);
+            return false;
+        }
+        foreach (var argument in arguments)
+        {
+            if (!is_name_valid (argument))
+            {
+                root_parser.set_error (ErrorCode.INVALID);
+                return false;
+            }
+        }
+
         Number[] args = {};
         FunctionParser parser = new FunctionParser (this, root_parser, args);
-        
+
         uint representation_base;
         ErrorCode error_code;
         string? error_token;
@@ -82,6 +96,17 @@ public class MathFunction : Object
             
         root_parser.set_error (error_code, error_token, error_start, error_end);
         return false;
+    }
+    
+    private bool is_name_valid (string x)
+    {
+        for (int i = 0; i < x.length; i++)
+        {
+            unichar current_char = x.get_char (i);
+            if (!current_char.isalpha ())
+                return false;
+        }
+        return true;
     }
 
     public virtual bool is_custom_function ()
