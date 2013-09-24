@@ -1935,14 +1935,18 @@ public class Parser
             int m_depth = 1;
             string argument_list = "";
         
-            while (!(token.type == LexerTokenType.R_R_BRACKET && m_depth == 0) && token.type != LexerTokenType.PL_EOS && token.type != LexerTokenType.ASSIGN)
+            while (token.type != LexerTokenType.PL_EOS && token.type != LexerTokenType.ASSIGN)
             {
-                argument_list += token.text;
-                token = lexer.get_next_token ();
                 if (token.type == LexerTokenType.L_R_BRACKET)
                     m_depth++;
                 else if (token.type == LexerTokenType.R_R_BRACKET)
+                {
                     m_depth--;
+                    if (m_depth == 0)
+                        break;
+                }
+                argument_list += token.text;
+                token = lexer.get_next_token ();
                 num_token_parsed ++;
             }
             
