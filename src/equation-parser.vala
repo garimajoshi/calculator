@@ -300,11 +300,24 @@ public class FunctionNode : ParseNode
         if (right is FunctionArgumentsNode)
         {
             var argument_list = right.value;
-            var arguments = argument_list.split_set (";");
+            var temp = "";
+            int depth = 0;
+            for (int i = 0; i < argument_list.length; i++)
+            {
+                string ss = argument_list.substring (i, 1);
+                if (ss == "(")
+                    depth++;
+                else if (ss == ")")
+                    depth--;
+                else if (ss == ";" && depth != 0)
+                    ss = "$";
+                temp += ss;
+            }
+            var arguments = temp.split_set (";");
 
             foreach (var argument in arguments)
             {
-                argument = argument.strip ();
+                argument = argument.replace ("$", ";").strip ();
                 var argument_parser = new ExpressionParser (argument, parser);
         
                 uint representation_base;
@@ -1919,10 +1932,10 @@ public class Parser
         {
             token = lexer.get_next_token ();
             num_token_parsed ++;
-            int m_depth = 0;
+            int m_depth = 1;
             string argument_list = "";
         
-            while (token.type != LexerTokenType.R_R_BRACKET && m_depth == 0 && token.type != LexerTokenType.PL_EOS && token.type != LexerTokenType.ASSIGN)
+            while (!(token.type == LexerTokenType.R_R_BRACKET && m_depth == 0) && token.type != LexerTokenType.PL_EOS && token.type != LexerTokenType.ASSIGN)
             {
                 argument_list += token.text;
                 token = lexer.get_next_token ();
