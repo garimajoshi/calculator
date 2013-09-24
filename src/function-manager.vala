@@ -310,7 +310,7 @@ public class FunctionManager : Object
         {
             Number log_base = new Number.integer (sub_atoi (lower_name.substring (3)));
             args += log_base;
-            lower_name = "log";
+            name = "log";
         }
         
         MathFunction? function = this.get (name);

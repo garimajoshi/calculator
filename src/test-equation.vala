@@ -266,7 +266,7 @@ private void test_equations ()
     test ("2z", "", ErrorCode.UNKNOWN_VARIABLE);  
     test ("z2", "", ErrorCode.UNKNOWN_VARIABLE);
     test ("z 2", "", ErrorCode.UNKNOWN_VARIABLE);
-    test ("z(2)", "", ErrorCode.UNKNOWN_VARIABLE);
+    test ("z(2)", "", ErrorCode.UNKNOWN_FUNCTION);
     test ("y²", "9", 0);
     test ("2y²", "18", 0);
     test ("x×y", "6", 0);
