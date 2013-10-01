@@ -1340,21 +1340,21 @@ public class Parser
     {
         int num_token_parsed = 0;
         var token = lexer.get_next_token ();
-        num_token_parsed ++;
+        num_token_parsed++;
         
         string function_name = token.text;
         lexer.get_next_token ();
-        num_token_parsed ++;
+        num_token_parsed++;
         
         token = lexer.get_next_token ();
-        num_token_parsed ++;
+        num_token_parsed++;
         string argument_list = ""; 
         
         while (token.type != LexerTokenType.R_R_BRACKET && token.type != LexerTokenType.PL_EOS)
         {
             argument_list += token.text;
             token = lexer.get_next_token ();
-            num_token_parsed ++;
+            num_token_parsed++;
         }
         
         if (token.type == LexerTokenType.PL_EOS)
@@ -1365,7 +1365,7 @@ public class Parser
         }
         
         var assign_token = lexer.get_next_token ();
-        num_token_parsed ++;
+        num_token_parsed++;
         if (assign_token.type != LexerTokenType.ASSIGN)
         {
             while (num_token_parsed-- > 0)
@@ -1909,6 +1909,7 @@ public class Parser
 
     private bool function_invocation ()
     {
+        depth_level++;
         int num_token_parsed = 0;
         var fun_token = lexer.get_next_token ();
         num_token_parsed ++;
@@ -1917,13 +1918,13 @@ public class Parser
         insert_into_tree (new FunctionNameNode (this, null, make_precedence_p (Precedence.NUMBER_VARIABLE), get_associativity_p (Precedence.NUMBER_VARIABLE), function_name));
         
         var token = lexer.get_next_token ();
-        num_token_parsed ++;
+        num_token_parsed++;
         string? power = null;
         if (token.type == LexerTokenType.SUP_NUMBER || token.type == LexerTokenType.NSUP_NUMBER)
         {
             power = token.text;
             token = lexer.get_next_token ();
-            num_token_parsed ++;
+            num_token_parsed++;
         }
 
         insert_into_tree (new FunctionNode (this, fun_token, make_precedence_t (fun_token.type), get_associativity (fun_token), power));
@@ -1931,7 +1932,7 @@ public class Parser
         if (token.type == LexerTokenType.L_R_BRACKET)
         {
             token = lexer.get_next_token ();
-            num_token_parsed ++;
+            num_token_parsed++;
             int m_depth = 1;
             string argument_list = "";
         
@@ -1947,13 +1948,14 @@ public class Parser
                 }
                 argument_list += token.text;
                 token = lexer.get_next_token ();
-                num_token_parsed ++;
+                num_token_parsed++;
             }
             
             if (token.type != LexerTokenType.R_R_BRACKET)
             {
                 while (num_token_parsed-- > 0)
                     lexer.roll_back ();
+                depth_level--;
                 return false;
             }
             
@@ -1962,13 +1964,30 @@ public class Parser
         else
         {
             lexer.roll_back ();
-            if (!expression ())
+            if (!expression_1 ())
+            {
+                lexer.roll_back ();
+                depth_level--;
+                return false;
+            }
+
+            token = lexer.get_next_token ();
+            if (token.type == LexerTokenType.FACTORIAL)
+                insert_into_tree_unary (new FactorialNode (this, token, make_precedence_t (token.type), get_associativity (token)));
+            else
+                lexer.roll_back ();
+
+            depth_level--;
+
+            if (!expression_2 ())
             {
                 lexer.roll_back ();
                 return false;
             }
+            return true;
         }
-        
+
+        depth_level--;
         return true;
     }
 
